@@ -9,6 +9,7 @@ import (
 	"github.com/gocolly/colly"
 )
 
+//Я не понимаю почему оно не записывает данных в json файл
 func main() {
 	sliceOfArtist := []string{}
 	sliceOfBio := []string{}
