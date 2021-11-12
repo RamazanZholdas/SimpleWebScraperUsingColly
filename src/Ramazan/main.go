@@ -3,14 +3,21 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"log"
+	"os"
 
 	"github.com/gocolly/colly"
 )
 
-//Я не понимаю почему оно не записывает данных в json файл
 func main() {
+	file, err := os.Create("listOfArtist.json")
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	defer file.Close()
+
+	var artists Artists
 	sliceOfArtist := []string{}
 	sliceOfBio := []string{}
 
@@ -32,39 +39,34 @@ func main() {
 		sliceOfBio = append(sliceOfBio, h.Text)
 	})
 
-	for i := 1; i <= 5; i++ {
+	c.Visit("https://www.last.fm/ru/tag/pop/artists")
+
+	for i := 2; i <= 3; i++ {
 		c.Visit(fmt.Sprintf("https://www.last.fm/ru/tag/pop/artists?page=%d", i))
 	}
 
-	var artist Artist
-	slice := []Artist{}
 	for i := range sliceOfArtist {
-		top := i + 1
-		artist = Artist{
-			numberInTop: top,
-			name:        sliceOfArtist[i],
-			bio:         sliceOfBio[i],
-		}
-		slice = append(slice, artist)
+		artists.Artist = append(artists.Artist, Artist{
+			Id:   i,
+			Name: sliceOfArtist[i],
+			Bio:  sliceOfBio[i],
+		})
 	}
 
-	for i := range slice {
-		file, err := json.MarshalIndent(slice[i], "", " ")
-		if err != nil {
-			log.Fatal(err)
-		}
-		if err := ioutil.WriteFile("artists.json", file, 0644); err != nil {
-			log.Fatal(err)
-		}
+	byteArr, err := json.MarshalIndent(artists, "", " ")
+	if err != nil {
+		log.Fatal(err)
 	}
 
-	for i := range slice {
-		fmt.Println(slice[i])
-	}
+	os.WriteFile(file.Name(), byteArr, 0644)
+}
+
+type Artists struct {
+	Artist []Artist `json:"artists"`
 }
 
 type Artist struct {
-	numberInTop int
-	name        string
-	bio         string
+	Id   int    `json:"id"`
+	Name string `json:"name"`
+	Bio  string `json:"bio"`
 }
