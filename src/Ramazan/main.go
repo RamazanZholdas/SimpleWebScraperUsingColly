@@ -9,6 +9,7 @@ import (
 	"github.com/gocolly/colly"
 )
 
+//here im parsing 3 pages of artists and putting results in json format
 func main() {
 	file, err := os.Create("listOfArtist.json")
 	if err != nil {
