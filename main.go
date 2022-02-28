@@ -1,24 +1,17 @@
 package main
 
 import (
-	"encoding/json"
 	"fmt"
-	"log"
-	"os"
+	"ramazan/helpers"
 
 	"github.com/gocolly/colly"
 )
 
 //here im parsing 3 pages of artists and putting results in json format
 func main() {
-	file, err := os.Create("listOfArtist.json")
-	if err != nil {
-		log.Fatal(err)
-	}
-
+	file := helpers.OpenFile("listOfArtist.json")
 	defer file.Close()
 
-	var artists Artists
 	sliceOfArtist := []string{}
 	sliceOfBio := []string{}
 
@@ -46,28 +39,5 @@ func main() {
 		c.Visit(fmt.Sprintf("https://www.last.fm/ru/tag/pop/artists?page=%d", i))
 	}
 
-	for i := range sliceOfArtist {
-		artists.Artist = append(artists.Artist, Artist{
-			Id:   i,
-			Name: sliceOfArtist[i],
-			Bio:  sliceOfBio[i],
-		})
-	}
-
-	byteArr, err := json.MarshalIndent(artists, "", " ")
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	os.WriteFile(file.Name(), byteArr, 0644)
-}
-
-type Artists struct {
-	Artist []Artist `json:"artists"`
-}
-
-type Artist struct {
-	Id   int    `json:"id"`
-	Name string `json:"name"`
-	Bio  string `json:"bio"`
+	helpers.WriteToFile(sliceOfArtist, sliceOfBio, file.Name())
 }
