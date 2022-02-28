@@ -3,12 +3,14 @@ package main
 import (
 	"fmt"
 	"ramazan/helpers"
+	"sync"
 
 	"github.com/gocolly/colly"
 )
 
 //here im parsing 3 pages of artists and putting results in json format
 func main() {
+	wg := sync.WaitGroup{}
 	file := helpers.OpenFile("listOfArtist.json")
 	defer file.Close()
 
@@ -36,8 +38,13 @@ func main() {
 	c.Visit("https://www.last.fm/ru/tag/pop/artists")
 
 	for i := 2; i <= 3; i++ {
-		c.Visit(fmt.Sprintf("https://www.last.fm/ru/tag/pop/artists?page=%d", i))
+		wg.Add(1)
+		go func(i int) {
+			defer wg.Done()
+			c.Visit(fmt.Sprintf("https://www.last.fm/ru/tag/pop/artists?page=%d", i))
+		}(i)
 	}
+	wg.Wait()
 
 	helpers.WriteToFile(sliceOfArtist, sliceOfBio, file.Name())
 }
